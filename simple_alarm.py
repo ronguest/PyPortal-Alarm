@@ -8,6 +8,11 @@ import board
 from adafruit_pyportal import PyPortal
 from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text.Label import Label
+import storage
+import adafruit_sdcard
+import os
+import digitalio
+import busio
 
 days_str = ("Mon.", "Tues.", "Wed.", "Thurs.", "Fri.", "Sat.", "Sun.")
 
@@ -16,6 +21,13 @@ ALARM_URL = 'http://10.0.1.38/ashley_alarm.txt'
 # determine the current working directory
 # needed so we know where to find files
 cwd = ("/"+__file__).rsplit('/', 1)[0]
+
+# Set up access to SD card
+spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
+cs = digitalio.DigitalInOut(board.SD_CS)
+sdcard = adafruit_sdcard.SDCard(spi, cs)
+vfs = storage.VfsFat(sdcard)
+storage.mount(vfs, "/sd")
 
 # initialize the pyportal object and let us know what data to fetch and where
 # to display it

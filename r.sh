@@ -1,1 +1,1 @@
-cp code.py /Volumes/CIRCUITPYTHON
+cp code.py secrets.py /Volumes/CIRCUITPY

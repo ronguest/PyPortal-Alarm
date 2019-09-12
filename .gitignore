@@ -1,0 +1,6 @@
+.pioenvs
+.piolibdeps
+.clang_complete
+.gcc-flags.json
+secrets.py
+.DS_Store
