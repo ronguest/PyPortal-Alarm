@@ -25,7 +25,7 @@ import os
 import busio
 
 alarm_url = 'http://10.0.1.38/ashley_alarm.txt'
-force_alarm = True             ### For debugging only
+force_alarm = False             ### For debugging only
 
 ####################
 # setup hardware
@@ -64,12 +64,12 @@ backlight_on = 0.8
 pyportal.set_backlight(backlight_on)
 
 time_color = 0x00ff00               # bright green
-time_position = (50,80)
+time_position = (70,80)
 time_textarea = Label(time_font, max_glyphs=15, color=time_color,
                       x=time_position[0], y=time_position[1])
 
 wakeup_time_color = 0xFFFFFF
-wakeup_time_position = (50,220)
+wakeup_time_position = (70,220)
 wakeup_time_textarea = Label(alarm_font, max_glyphs=30, color=wakeup_time_color,
                              x=wakeup_time_position[0], y=wakeup_time_position[1])
 
@@ -98,9 +98,6 @@ def formatTime(raw_hours, raw_minutes):
     format_str = "%d:%02d"
     if raw_hours >= 12:
         raw_hours -= 12
-        # format_str = format_str+"pm"
-    # else:
-    #     format_str = format_str+"am"
     if raw_hours == 0:
         raw_hours = 12
     time_str = format_str % (raw_hours, raw_minutes)
@@ -119,8 +116,6 @@ while True:
             print(alarm_time)
             alarm_hour = int(alarm_time[:2])
             alarm_minute = int(alarm_time[-2:])
-            print("alarm_hour ", alarm_hour)
-            print("alarm_minute ", alarm_minute)
             print("Getting time from internet")
             pyportal.get_local_time()
             refresh_time = time.monotonic()
@@ -128,7 +123,11 @@ while True:
             print("Time set error occured, retrying! -", e)
             continue
     time_str_text = displayTime()
-    input_wake_up_time_text = "Wake up at " + alarm_time
+    # We skip alarms on the weekend, also if alarm time is zero
+    if (time_now.tm_wday) == 4 or (time_now.tm_wday == 5) or ((alarm_hour + alarm_minute) == 0):
+        input_wake_up_time_text = "No alarm set for tomorrow"
+    else:
+        input_wake_up_time_text = "Wake up at " + alarm_time
     wakeup_time_textarea.text = input_wake_up_time_text
 
     # See if it is time to play the alarm sound
