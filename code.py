@@ -24,8 +24,11 @@ import adafruit_sdcard
 import os
 import busio
 
-alarm_url = 'http://10.0.1.38/ashley_alarm.txt'
+alarm_url = secrets['alarm_url']
+print('alarm URL ', alarm_url)
 force_alarm = False             ### For debugging only
+
+# print('token', secrets['openweather_token']) 
 
 ####################
 # setup hardware
