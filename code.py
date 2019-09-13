@@ -25,6 +25,7 @@ import os
 import busio
 
 alarm_url = 'http://10.0.1.38/ashley_alarm.txt'
+force_alarm = False             ### For debugging only
 
 ####################
 # setup hardware
@@ -41,7 +42,6 @@ alarm_time = '1111'             # As read from internet
 alarm_hour = 0                  # Computed from alarm_time string
 alarm_minute = 0
 alarm_on = True
-force_alarm = False
 
 # The most recently fetched time
 current_time = None
@@ -116,7 +116,7 @@ while True:
             print("Getting alarm time: ")
             alarm_time = pyportal.fetch()
             print(alarm_time)
-            alarm_hour = int(alarm_time[2:])
+            alarm_hour = int(alarm_time[:2])
             alarm_minute = int(alarm_time[-2:])
             print("alarm_hour ", alarm_hour)
             print("alarm_minute ", alarm_minute)
@@ -134,9 +134,16 @@ while True:
     if (time_now.tm_wday) == 5 or (time_now.tm_wday == 6):
         print("Weekend so alarm won't sound")
     else:
-        print("Check if alarm time")
-        if (alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_minute):
+        # print("Check if alarm time")
+        if force_alarm:
+            alarm_hour = time_now.tm_hour
+            alarm_minute = time_now.tm_min
+        if (alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_min):
             print("Sound the alarm!")
+            pyportal._speaker_enable.value = True
+            pyportal.play_file(alarm_file, False)
 
+    if pyportal.touchscreen.touch_point != None:
+        print('Screen touched')
     # update every second so that screen can be tapped to view time
-    time.sleep(1)
+    time.sleep(.5)
