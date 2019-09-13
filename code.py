@@ -25,7 +25,7 @@ import os
 import busio
 
 alarm_url = 'http://10.0.1.38/ashley_alarm.txt'
-force_alarm = False             ### For debugging only
+force_alarm = True             ### For debugging only
 
 ####################
 # setup hardware
@@ -134,16 +134,20 @@ while True:
     if (time_now.tm_wday) == 5 or (time_now.tm_wday == 6):
         print("Weekend so alarm won't sound")
     else:
-        # print("Check if alarm time")
-        if force_alarm:
-            alarm_hour = time_now.tm_hour
-            alarm_minute = time_now.tm_min
-        if (alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_min):
+        if force_alarm or ((alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_min)):
             print("Sound the alarm!")
-            pyportal._speaker_enable.value = True
-            pyportal.play_file(alarm_file, False)
+            # If a file is already playing leave it alone, else start playing
+            if pyportal.audio.playing == False:
+                pyportal._speaker_enable.value = True
+                pyportal.play_file(alarm_file, False)
+            # print('audio_playing is ', pyportal.audio.playing)
 
+    # The only purpose of touching the screen is to stop the alarm, so that's all we do here
     if pyportal.touchscreen.touch_point != None:
         print('Screen touched')
-    # update every second so that screen can be tapped to view time
+        pyportal._speaker_enable.value = False
+        pyportal.audio.stop()
+        force_alarm = False
+
+    # update every half second so that screen can be tapped to stop alarm
     time.sleep(.5)
