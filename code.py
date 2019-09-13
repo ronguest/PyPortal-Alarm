@@ -37,7 +37,8 @@ pyportal = PyPortal(url=alarm_url,
 # variables
 
 # alarm support
-alarm_file = 'alarm.wav'
+# alarm_file = 'alarm.wav'
+alarm_file = 'fnafs.wav'
 alarm_time = '1111'             # As read from internet
 alarm_hour = 0                  # Computed from alarm_time string
 alarm_minute = 0
@@ -62,13 +63,13 @@ logger.setLevel(logging.INFO)            # change as desired
 backlight_on = 0.8
 pyportal.set_backlight(backlight_on)
 
-time_color = 0xFFFFFF
-time_position = (40,80)
+time_color = 0x00ff00               # bright green
+time_position = (50,80)
 time_textarea = Label(time_font, max_glyphs=15, color=time_color,
                       x=time_position[0], y=time_position[1])
 
 wakeup_time_color = 0xFFFFFF
-wakeup_time_position = (15,200)
+wakeup_time_position = (50,220)
 wakeup_time_textarea = Label(alarm_font, max_glyphs=30, color=wakeup_time_color,
                              x=wakeup_time_position[0], y=wakeup_time_position[1])
 
@@ -120,7 +121,7 @@ while True:
             alarm_minute = int(alarm_time[-2:])
             print("alarm_hour ", alarm_hour)
             print("alarm_minute ", alarm_minute)
-            print("Getting time from internet!")
+            print("Getting time from internet")
             pyportal.get_local_time()
             refresh_time = time.monotonic()
         except RuntimeError as e:
@@ -135,9 +136,9 @@ while True:
         print("Weekend so alarm won't sound")
     else:
         if force_alarm or ((alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_min)):
-            print("Sound the alarm!")
             # If a file is already playing leave it alone, else start playing
             if pyportal.audio.playing == False:
+                print("Start the alarm file")
                 pyportal._speaker_enable.value = True
                 pyportal.play_file(alarm_file, False)
             # print('audio_playing is ', pyportal.audio.playing)
