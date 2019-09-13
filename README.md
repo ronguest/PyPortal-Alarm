@@ -6,15 +6,15 @@ Possible way to change text color: https://forums.adafruit.com/viewtopic.php?f=6
 Changes needed:
 * PERIODICALLY MAKE COPIES OF PYPORTAL CONTENTS (write script)
 
-* Add retrieval of alarm time - requires replace weather fetch with alarm fetch
-* Automatically skip alarm on weekends
+* Alarm doesn't stop when I touch the screen
+* Convert to 12 hour display instead of 24
+* Implement code for long alarm sounds - see "alarm_class.py"
+* Automatically skip alarm on weekends and be sure it works
+* Improve the alarm time display to indicate if it will actually sound. So after the alarm time if the alarm won't seound the next day it should say so. Rather than the red text I may want to use the other program's Display.
 * Remove ability to change the alarm time
 * Remove Mugsy code
 * Center Time display
-* Either remove background BMPs or replace with something else
-* Change or remove display of current alarm time
 * Change the display background while alarm is sounding? Flash it?
-* Remove Snooze button code
 * Add back Weather info - requires finding way to fetch two different URLs
 * Remove my dead SD card access code and imports if not needed or fix it per the above idea
 * Remove unnecessary files from the SD card

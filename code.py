@@ -37,7 +37,6 @@ ALARM_URL = 'http://10.0.1.38/ashley_alarm.txt'
 
 ####################
 # setup hardware
-
 pyportal = PyPortal(url=ALARM_URL,
                     status_neopixel=board.NEOPIXEL)
 
@@ -49,7 +48,6 @@ light = analogio.AnalogIn(board.LIGHT)
 # variables
 
 # alarm support
-
 alarm_file = 'alarm.wav'
 alarm_armed = True
 alarm_enabled = True
@@ -66,13 +64,13 @@ update_time = None
 current_time = None
 
 # track whether we're in low light mode
-
 low_light = False
 
+# screen touched
+touched = False
 
 ####################
 # Load the fonts
-
 time_font = bitmap_font.load_font('/fonts/Anton-Regular-104.bdf')
 time_font.load_glyphs(b'0123456789:') # pre-load glyphs for fast printing
 
@@ -81,9 +79,9 @@ alarm_font.load_glyphs(b'0123456789:')
 
 ####################
 # Set up logging
-
 logger = logging.getLogger('alarm_clock')
 logger.setLevel(logging.INFO)            # change as desired
+do_once = True                           # Debug flag for something to log once
 
 ####################
 # Functions
@@ -104,14 +102,6 @@ def clear_splash():
     for _ in range(len(pyportal.splash) - 1):
         pyportal.splash.pop()
 
-
-def touch_in_button(t, b):
-    in_horizontal = b['left'] <= t[0] <= b['right']
-    in_vertical = b['top'] <= t[1] <= b['bottom']
-    return in_horizontal and in_vertical
-
-
-touched = False
 
 ####################
 # states
@@ -185,19 +175,18 @@ class Time_State(State):
 
     def tick(self, now):
         global alarm_armed, update_time, current_time, alarm_time, alarm_hour, alarm_minute
+        global do_once
 
         # only query the online time once per hour (and on first run), 3600
         if (not self.refresh_time) or ((now - self.refresh_time) > 3600):
             logger.info('Fetching alarm time')
             alarm_time = pyportal.fetch()
-            logger.info('Alarm time ')
-            logger.info(alarm_time)
+            alarm_time = '0924'         ##### !!!!!! Override alarm time for debugging
+            logger.info('Alarm time %s', alarm_time)
             alarm_hour = alarm_time[:2]
+            logger.info('Alarm hour %s', alarm_hour)
             alarm_minute = alarm_time[-2:]
-            logger.info('Alarm hour ')
-            logger.info(alarm_hour)
-            logger.info('Alarm minute ')
-            logger.info(alarm_minute)
+            logger.info('Alarm minute %s', alarm_minute)
             if alarm_enabled:
                 self.text_areas[1].text = '%2d:%02d' % (int(alarm_hour), int(alarm_minute))            
             logger.debug('Fetching time')
@@ -217,10 +206,14 @@ class Time_State(State):
             board.DISPLAY.refresh_soon()
             board.DISPLAY.wait_for_frame()
 
-            # Check if alarm should sound
-        if current_time is not None:
+        # Check if alarm should sound, never on a weekend
+        if (current_time is not None):
             minutes_now = current_time.tm_hour * 60 + current_time.tm_min
-            minutes_alarm = alarm_hour * 60 + alarm_minute
+            minutes_alarm = int(alarm_hour) * 60 + int(alarm_minute)
+            if do_once:
+                print('Minutes now %s', minutes_now)
+                print('Minutes alarm %s',minutes_alarm)
+                do_once = False
             if minutes_now == minutes_alarm:
                 if alarm_armed:
                     change_to_state('alarm')
@@ -242,12 +235,9 @@ class Time_State(State):
         self.adjust_backlight_based_on_light(force=True)
         for ta in self.text_areas:
             pyportal.splash.append(ta)
-        if alarm_enabled:
-            print('Display alarm time')
-            print('Alarm hour ')
-            print(alarm_hour)
-            print('Alarm minute ')
-            print(alarm_minute)
+        current_time = time.localtime()
+        print(current_time.tm_wday)
+        if alarm_enabled and (current_time.tm_wday != 3):
             self.text_areas[1].text = '%2d:%02d' % (alarm_hour, alarm_minute)
         else:
             self.text_areas[1].text = '     '
