@@ -54,6 +54,7 @@ alarm_enabled = True
 alarm_hour = 0
 alarm_minute = 0
 alarm_interval = 10.0
+force_alarm = False
 
 # display/data refresh timers
 
@@ -123,13 +124,12 @@ class State(object):
         """Handle a tick: one pass through the main loop"""
         pass
 
-
     #pylint:disable=unused-argument
     def touch(self, t, touched):
         """Handle a touch event.
         :param (x, y, z) - t: the touch location/strength"""
+        # print('touch')
         return bool(t)
-
 
     def enter(self):
         """Just after the state is entered."""
@@ -152,10 +152,6 @@ class Time_State(State):
                              dict(x=210, y=50, size=5, color=0xFF0000, font=alarm_font)]
         self.text_areas = create_text_areas(text_area_configs)
 
-        # each button has it's edges as well as the state to transition to when touched
-        self.buttons = [dict(left=0, top=50, right=80, bottom=120, next_state='settings'),
-                        dict(left=0, top=155, right=80, bottom=220, next_state='mugsy')]
-
 
     @property
     def name(self):
@@ -177,11 +173,11 @@ class Time_State(State):
         global alarm_armed, update_time, current_time, alarm_time, alarm_hour, alarm_minute
         global do_once
 
-        # only query the online time once per hour (and on first run), 3600
+        # only query the online time and alarm time once per hour (and on first run), 3600
         if (not self.refresh_time) or ((now - self.refresh_time) > 3600):
-            logger.info('Fetching alarm time')
+            logger.debug('Fetching alarm time')
             alarm_time = pyportal.fetch()
-            alarm_time = '0924'         ##### !!!!!! Override alarm time for debugging
+            alarm_time = '0959'         ##### !!!!!! Override alarm time for debugging  ##### !!!!!!!!!!!
             logger.info('Alarm time %s', alarm_time)
             alarm_hour = alarm_time[:2]
             logger.info('Alarm hour %s', alarm_hour)
@@ -210,25 +206,11 @@ class Time_State(State):
         if (current_time is not None):
             minutes_now = current_time.tm_hour * 60 + current_time.tm_min
             minutes_alarm = int(alarm_hour) * 60 + int(alarm_minute)
-            if do_once:
-                print('Minutes now %s', minutes_now)
-                print('Minutes alarm %s',minutes_alarm)
-                do_once = False
-            if minutes_now == minutes_alarm:
+            if (minutes_now == minutes_alarm) or force_alarm:
                 if alarm_armed:
                     change_to_state('alarm')
             else:
                 alarm_armed = alarm_enabled
-
-
-    def touch(self, t, touched):
-        if t and not touched:             # only process the initial touch
-            for button_index in range(len(self.buttons)):
-                b = self.buttons[button_index]
-                if touch_in_button(t, b):
-                    change_to_state(b['next_state'])
-                    break
-        return bool(t)
 
 
     def enter(self):
@@ -238,7 +220,7 @@ class Time_State(State):
         current_time = time.localtime()
         print(current_time.tm_wday)
         if alarm_enabled and (current_time.tm_wday != 3):
-            self.text_areas[1].text = '%2d:%02d' % (alarm_hour, alarm_minute)
+            self.text_areas[1].text = '%2d:%02d' % (int(alarm_hour), int(alarm_minute))
         else:
             self.text_areas[1].text = '     '
         board.DISPLAY.refresh_soon()
@@ -271,7 +253,12 @@ class Alarm_State(State):
 
 
     def touch(self, t, touched):
+        global snooze_time
+        print('In Alarm_state touch')
+        if t:
+            print('t is true')
         if t and not touched:
+            snooze_time = None
             change_to_state('time')
         return bool(t)
 
@@ -301,59 +288,12 @@ class Setting_State(State):
         text_area_configs = [dict(x=88, y=120, size=5, color=0xFFFFFF, font=time_font)]
 
         self.text_areas = create_text_areas(text_area_configs)
-        self.buttons = [dict(left=0, top=30, right=80, bottom=93),    # on
-                        dict(left=0, top=98, right=80, bottom=152),   # return
-                        dict(left=0, top=155, right=80, bottom=220),  # off
-                        dict(left=100, top=0, right=200, bottom = 240), # hours
-                        dict(left=220, top=0, right=320, bottom = 240)]   # minutes
 
 
     @property
     def name(self):
         return 'settings'
 
-    def touch(self, t, touched):
-        global alarm_hour, alarm_minute, alarm_enabled
-        if t:
-            if touch_in_button(t, self.buttons[0]):   # on
-                logger.debug('ON touched')
-                alarm_enabled = True
-                self.text_areas[0].text = '%02d:%02d' % (alarm_hour, alarm_minute)
-            elif touch_in_button(t, self.buttons[1]):   # return
-                logger.debug('RETURN touched')
-                change_to_state('time')
-            elif touch_in_button(t, self.buttons[2]): # off
-                logger.debug('OFF touched')
-                alarm_enabled = False
-                self.text_areas[0].text = '     '
-            elif alarm_enabled:
-                if not self.previous_touch:
-                    self.previous_touch = t
-                else:
-                    if touch_in_button(t, self.buttons[3]):   # HOURS
-                        logger.debug('HOURS touched')
-                        if t[1] < (self.previous_touch[1] - 5):   # moving up
-                            alarm_hour = (alarm_hour + 1) % 24
-                            logger.debug('Alarm hour now: %d', alarm_hour)
-                        elif t[1] > (self.previous_touch[1] + 5): # moving down
-                            alarm_hour = (alarm_hour - 1) % 24
-                            logger.debug('Alarm hour now: %d', alarm_hour)
-                        self.text_areas[0].text = '%02d:%02d' % (alarm_hour, alarm_minute)
-                    elif touch_in_button(t, self.buttons[4]): # MINUTES
-                        logger.debug('MINUTES touched')
-                        if t[1] < (self.previous_touch[1] - 5):   # moving up
-                            alarm_minute = (alarm_minute + 1) % 60
-                            logger.debug('Alarm minute now: %d', alarm_minute)
-                        elif t[1] > (self.previous_touch[1] + 5): # moving down
-                            alarm_minute = (alarm_minute - 1) % 60
-                            logger.debug('Alarm minute now: %d', alarm_minute)
-                        self.text_areas[0].text = '%02d:%02d' % (alarm_hour, alarm_minute)
-                    self.previous_touch = t
-            board.DISPLAY.refresh_soon()
-            board.DISPLAY.wait_for_frame()
-        else:
-            self.previous_touch = None
-        return bool(t)
 
     def enter(self):
         for ta in self.text_areas:

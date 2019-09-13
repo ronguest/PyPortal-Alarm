@@ -6,7 +6,7 @@ Possible way to change text color: https://forums.adafruit.com/viewtopic.php?f=6
 Changes needed:
 * PERIODICALLY MAKE COPIES OF PYPORTAL CONTENTS (write script)
 
-* Alarm doesn't stop when I touch the screen
+* Alarm doesn't stop when I touch the screen - touch doesn't seem to be registered
 * Convert to 12 hour display instead of 24
 * Implement code for long alarm sounds - see "alarm_class.py"
 * Automatically skip alarm on weekends and be sure it works
