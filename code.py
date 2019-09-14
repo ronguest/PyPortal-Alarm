@@ -114,16 +114,21 @@ while True:
     # only query the online time and alarm time once per hour (and on first run)
     if (not refresh_time) or (time.monotonic() - refresh_time) > 3600:
         try:
-            print("Getting alarm time: ")
+            print("Getting alarm time")
             alarm_time = pyportal.fetch()
             print(alarm_time)
-            alarm_hour = int(alarm_time[:2])
-            alarm_minute = int(alarm_time[-2:])
+            # Try to protect against a bad return from fetch(). Ignore if not digits.
+            if alarm_time.isdigit():
+                alarm_hour = int(alarm_time[:2])
+                alarm_minute = int(alarm_time[-2:])
+        except RuntimeError as e:
+            print("Exception getting alarm time - ", e)
+        try:
             print("Getting time from internet")
             pyportal.get_local_time()
             refresh_time = time.monotonic()
         except RuntimeError as e:
-            print("Time set error occured, retrying! -", e)
+            print("Time set exception occured, retrying! -", e)
             continue
     time_str_text = displayTime()
     # We skip alarms on the weekend, also if alarm time is zero
@@ -133,10 +138,8 @@ while True:
         input_wake_up_time_text = "Wake up at " + alarm_time
     wakeup_time_textarea.text = input_wake_up_time_text
 
-    # See if it is time to play the alarm sound
-    if (time_now.tm_wday) == 5 or (time_now.tm_wday == 6):
-        print("Weekend so alarm won't sound")
-    else:
+    # See if it is time to play the alarm sound, always skip Saturday & Sunday
+    if (time_now.tm_wday) != 5 and (time_now.tm_wday != 6) and (not force_alarm):
         if force_alarm or ((alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_min)):
             # If a file is already playing leave it alone, else start playing
             if pyportal.audio.playing == False:
