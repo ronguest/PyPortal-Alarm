@@ -6,7 +6,8 @@ An alarm clock based on the PyPortal from Adafruit. This reads the alarm time fr
 Changes needed:
 * PERIODICALLY MAKE COPIES OF PYPORTAL CONTENTS (write script)
 
-* Automatically skip alarm on weekends and be sure it works
+* Trim speaker connection for on-board speaker
+* Do I need to find a way to close the alarm file after audio is done, since playing in the background?
 
 * Change the display background while alarm is sounding? Flash it?
 

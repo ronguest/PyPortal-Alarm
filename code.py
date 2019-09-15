@@ -27,6 +27,7 @@ import busio
 alarm_url = secrets['alarm_url']
 print('alarm URL ', alarm_url)
 force_alarm = False             ### For debugging only
+do_once = True                  ### Used to log something only once
 
 # print('token', secrets['openweather_token']) 
 
@@ -132,15 +133,15 @@ while True:
             continue
     time_str_text = displayTime()
     # We skip alarms on the weekend, also if alarm time is zero
-    if (time_now.tm_wday) == 4 or (time_now.tm_wday == 5) or ((alarm_hour + alarm_minute) == 0):
+    if (time_now.tm_wday) == 4 or (time_now.tm_wday == 5) or (alarm_time[:4] == "0000"):
         input_wake_up_time_text = "No alarm set for tomorrow"
     else:
         input_wake_up_time_text = "Wake up at " + alarm_time
     wakeup_time_textarea.text = input_wake_up_time_text
 
-    # See if it is time to play the alarm sound, always skip Saturday & Sunday
-    if (time_now.tm_wday) != 5 and (time_now.tm_wday != 6) and (not force_alarm):
-        if force_alarm or ((alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_min)):
+    # See if it is time to play the alarm sound, always skip Saturday (5) & Sunday (6)
+    if ((time_now.tm_wday) != 5 and (time_now.tm_wday != 6)) or force_alarm:
+        if ((alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_min)) or force_alarm:
             # If a file is already playing leave it alone, else start playing
             if pyportal.audio.playing == False:
                 print("Start the alarm file")
