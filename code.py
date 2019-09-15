@@ -1,5 +1,5 @@
 """
-My version of a PyPortal alarm clock
+My version of a PyPortal alarm clock. Reads alarm time from server, supports long alarm sounds
 
 Author: Ron Guest ronguest@protonmail.com
 """
@@ -24,12 +24,10 @@ import adafruit_sdcard
 import os
 import busio
 
-alarm_url = secrets['alarm_url']
+alarm_url = secrets['alarm_url']    # Load this before setting up PyPortal
 print('alarm URL ', alarm_url)
 force_alarm = False             ### For debugging only
 do_once = True                  ### Used to log something only once
-
-# print('token', secrets['openweather_token']) 
 
 ####################
 # setup hardware
@@ -43,10 +41,9 @@ pyportal = PyPortal(url=alarm_url,
 # alarm support
 # alarm_file = 'alarm.wav'
 alarm_file = 'fnafs.wav'
-alarm_time = '1111'             # As read from internet
+alarm_time = '1111'             # Value is read from server so this one doesn't matter
 alarm_hour = 0                  # Computed from alarm_time string
 alarm_minute = 0
-alarm_on = True
 
 # The most recently fetched time
 current_time = None
@@ -83,7 +80,7 @@ pyportal.splash.append(wakeup_time_textarea)
 # Get initial time, retry if needed
 while True:
     try:
-        print("Getting time from internet!")
+        # print("Getting time from internet!")
         pyportal.get_local_time()
     except RuntimeError as e:
         print("Time set error occured, retrying! -", e)
@@ -107,7 +104,7 @@ def formatTime(raw_hours, raw_minutes):
     time_str = format_str % (raw_hours, raw_minutes)
     return time_str
 
-# Main Loop
+### Main Loop
 refresh_time = None
 
 while True:
@@ -132,7 +129,8 @@ while True:
             print("Time set exception occured, retrying! -", e)
             continue
     time_str_text = displayTime()
-    # We skip alarms on the weekend, also if alarm time is zero
+
+    # We skip alarms on the weekend, also if alarm time is zero (which means disabled from server)
     if (time_now.tm_wday) == 4 or (time_now.tm_wday == 5) or (alarm_time[:4] == "0000"):
         input_wake_up_time_text = "No alarm set for tomorrow"
     else:
@@ -149,12 +147,13 @@ while True:
                 pyportal.play_file(alarm_file, False)
             # print('audio_playing is ', pyportal.audio.playing)
 
-    # The only purpose of touching the screen is to stop the alarm, so that's all we do here
+    # The only purpose of touching the screen is to stop the alarm, so that's all we check here
+    # I feel I need to close the WAV file when the audio finishes but I don't see a way to do so
     if pyportal.touchscreen.touch_point != None:
         print('Screen touched')
         pyportal._speaker_enable.value = False
         pyportal.audio.stop()
         force_alarm = False
 
-    # update every half second so that screen can be tapped to stop alarm
+    # update every half second for timely response to screen touches
     time.sleep(.5)

@@ -7,6 +7,9 @@ Changes needed:
 * PERIODICALLY MAKE COPIES OF PYPORTAL CONTENTS (write script)
 
 * Trim speaker connection for on-board speaker
+Speaker info: https://learn.adafruit.com/adafruit-pyportal/pinouts
+Cut on-board speaker when finalized code: https://forums.adafruit.com/viewtopic.php?f=60&t=151715&p=749029&hilit=pyportal+speaker#p749029
+
 * Do I need to find a way to close the alarm file after audio is done, since playing in the background?
 
 * Change the display background while alarm is sounding? Flash it?
