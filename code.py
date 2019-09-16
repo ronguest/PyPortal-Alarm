@@ -26,24 +26,27 @@ import busio
 
 alarm_url = secrets['alarm_url']    # Load this before setting up PyPortal
 print('alarm URL ', alarm_url)
-force_alarm = False             ### For debugging only
-do_once = True                  ### Used to log something only once
 
 ####################
 # setup hardware
 pyportal = PyPortal(url=alarm_url,
                     status_neopixel=board.NEOPIXEL)
 
-
 ####################
 # variables
 
 # alarm support
-# alarm_file = 'alarm.wav'
-alarm_file = 'fnafs.wav'
+force_alarm = True             ### For debugging only
+do_once = True                  ### Used to print/log something only once
+
+alarm_file = 'alarm.wav'
+# alarm_file = 'fnafs.wav'
 alarm_time = '1111'             # Value is read from server so this one doesn't matter
 alarm_hour = 0                  # Computed from alarm_time string
 alarm_minute = 0
+alarm_triggered = False
+alarm_start_time = 0            # Used to turn off alarm after alarm_max_time minutes
+alarm_max_time = 720            # In seconds
 
 # The most recently fetched time
 current_time = None
@@ -147,18 +150,26 @@ while True:
 
     # See if it is time to play the alarm sound, always skip Saturday (5) & Sunday (6)
     if ((time_now.tm_wday) != 5 and (time_now.tm_wday != 6)) or force_alarm:
-        if ((alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_min)) or force_alarm:
-            # If a file is already playing leave it alone, else start playing
-            if pyportal.audio.playing == False:
-                print("Start the alarm file")
-                pyportal._speaker_enable.value = True
-                pyportal.play_file(alarm_file, False)
+        # We trigger the alarm time on the hour and minute and first 5 seconds
+        # This is to prevent the alarm from starting again if the user turns it off quickly
+        if ((alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_min) and (time_now.tm_sec <= 5)) or force_alarm:
+            print("Triggering alarm")
+            alarm_triggered = True
+            alarm_start_time = time.monotonic()
+            force_alarm = False
+        # If a file is already playing leave it alone, else start playing
+        if alarm_triggered and pyportal.audio.playing == False:
+            print("Play the alarm file")
+            pyportal._speaker_enable.value = True
+            pyportal.play_file(alarm_file, False)
 
     # The only purpose of touching the screen is to stop the alarm, so that's all we check here
     # I feel I need to close the WAV file when the audio finishes but I don't see a way to do so
+    # We also stop the alarm if alarm_max_time seconds have elapsed
     if pyportal.audio.playing:
-        if pyportal.touchscreen.touch_point != None:
-            print('Screen touched')
+        if (pyportal.touchscreen.touch_point != None) or (time.monotonic() - alarm_start_time > alarm_max_time):
+            print('Stop alarm (touch or expired)')
+            alarm_triggered = False
             pyportal._speaker_enable.value = False
             pyportal.audio.stop()
             force_alarm = False
