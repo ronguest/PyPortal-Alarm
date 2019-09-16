@@ -76,6 +76,7 @@ wakeup_time_textarea = Label(alarm_font, max_glyphs=30, color=wakeup_time_color,
 
 pyportal.splash.append(time_textarea)
 pyportal.splash.append(wakeup_time_textarea)
+pyportal._speaker_enable.value = False
 
 # Get initial time, retry if needed
 while True:
@@ -114,11 +115,18 @@ while True:
         try:
             print("Getting alarm time")
             alarm_time = pyportal.fetch()
+            # Discard anything after the 4th digit, seem to get something extraneous from fetch (new line?)
+            alarm_time = alarm_time[:4]
             print(alarm_time)
-            # Try to protect against a bad return from fetch(). Ignore if not digits.
-            if alarm_time.isdigit():
+            # Try to protect against a bad return from fetch(). Ignore if not digits or too short.
+            if alarm_time.isdigit() and (len(alarm_time) >= 4):
+                print('Set alarm hour and minute')
                 alarm_hour = int(alarm_time[:2])
                 alarm_minute = int(alarm_time[-2:])
+            else:
+                print("Alarm time was invalid ", alarm_time)
+                print("isdigit ", alarm_time.isdigit())
+                print("len ", len(alarm_time))
         except RuntimeError as e:
             print("Exception getting alarm time - ", e)
         try:
@@ -131,10 +139,10 @@ while True:
     time_str_text = displayTime()
 
     # We skip alarms on the weekend, also if alarm time is zero (which means disabled from server)
-    if (time_now.tm_wday) == 4 or (time_now.tm_wday == 5) or (alarm_time[:4] == "0000"):
+    if (time_now.tm_wday == 4) or (time_now.tm_wday == 5) or (alarm_time[:4] == "0000"):
         input_wake_up_time_text = "No alarm set for tomorrow"
     else:
-        input_wake_up_time_text = "Wake up at " + alarm_time
+        input_wake_up_time_text = "Wake up at " + alarm_time[:2] + ":" + alarm_time[-2:]
     wakeup_time_textarea.text = input_wake_up_time_text
 
     # See if it is time to play the alarm sound, always skip Saturday (5) & Sunday (6)
@@ -145,15 +153,15 @@ while True:
                 print("Start the alarm file")
                 pyportal._speaker_enable.value = True
                 pyportal.play_file(alarm_file, False)
-            # print('audio_playing is ', pyportal.audio.playing)
 
     # The only purpose of touching the screen is to stop the alarm, so that's all we check here
     # I feel I need to close the WAV file when the audio finishes but I don't see a way to do so
-    if pyportal.touchscreen.touch_point != None:
-        print('Screen touched')
-        pyportal._speaker_enable.value = False
-        pyportal.audio.stop()
-        force_alarm = False
+    if pyportal.audio.playing:
+        if pyportal.touchscreen.touch_point != None:
+            print('Screen touched')
+            pyportal._speaker_enable.value = False
+            pyportal.audio.stop()
+            force_alarm = False
 
     # update every half second for timely response to screen touches
     time.sleep(.5)
