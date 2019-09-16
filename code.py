@@ -1,5 +1,8 @@
 """
-My version of a PyPortal alarm clock. Reads alarm time from server, supports long alarm sounds
+My version of a PyPortal alarm clock. Reads alarm time from server, supports long alarm sounds.
+Alarm will automatically stop playing after a set period of time, e.g. when no one is around
+Using my own code to play the WAV file so I can close it when done
+Shows when the alarm will go off the following day, or says it won't if weekend or disabled
 
 Author: Ron Guest ronguest@protonmail.com
 """
@@ -40,7 +43,7 @@ wave_file = None                # This is a global so we can close the file when
 alarm_time = ""
 alarm_hour = 0                  # Computed from alarm_time string
 alarm_minute = 0
-alarm_triggered = False
+alarm_triggered = False         # If True then we should be playing alarm sound continuously
 alarm_start_time = 0            # Used to turn off alarm after alarm_max_time minutes
 alarm_max_time = 720            # In seconds
 
