@@ -9,20 +9,14 @@ Author: Ron Guest ronguest@protonmail.com
 #pylint:disable=useless-super-delegation, too-many-locals
 
 import time
-import json
 from secrets import secrets
 import board
 from adafruit_pyportal import PyPortal
 from adafruit_bitmap_font import bitmap_font
 from adafruit_display_text.label import Label
-from digitalio import DigitalInOut, Direction, Pull
+import audioio
 import analogio
 import displayio
-import adafruit_logging as logging
-import storage
-import adafruit_sdcard
-import os
-import busio
 
 alarm_url = secrets['alarm_url']    # Load this before setting up PyPortal
 print('alarm URL ', alarm_url)
@@ -35,13 +29,15 @@ pyportal = PyPortal(url=alarm_url,
 ####################
 # variables
 
-# alarm support
-force_alarm = True             ### For debugging only
+# Debugging only
+force_alarm = False              ### For debugging only
 do_once = True                  ### Used to print/log something only once
 
-alarm_file = 'alarm.wav'
-# alarm_file = 'fnafs.wav'
-alarm_time = '1111'             # Value is read from server so this one doesn't matter
+# alarm support
+# alarm_file = 'alarm.wav'
+alarm_file = 'fnafs.wav'
+wave_file = None                # This is a global so we can close the file when alarm done
+alarm_time = ""
 alarm_hour = 0                  # Computed from alarm_time string
 alarm_minute = 0
 alarm_triggered = False
@@ -58,11 +54,6 @@ time_font.load_glyphs(b'0123456789:') # pre-load glyphs for fast printing
 
 alarm_font = bitmap_font.load_font('/fonts/Nunito-Black-17.bdf')
 alarm_font.load_glyphs(b'0123456789:Wakeupat ')
-
-####################
-# Set up logging
-logger = logging.getLogger('alarm_clock')
-logger.setLevel(logging.INFO)            # change as desired
 
 backlight_on = 0.8
 pyportal.set_backlight(backlight_on)
@@ -107,6 +98,14 @@ def formatTime(raw_hours, raw_minutes):
         raw_hours = 12
     time_str = format_str % (raw_hours, raw_minutes)
     return time_str
+
+def play_alarm():
+    global wave_file
+    # Play alarm file in background
+    board.DISPLAY.wait_for_frame()
+    wave_file = open(alarm_file, "rb")
+    wavedata = audioio.WaveFile(wave_file)
+    pyportal.audio.play(wavedata)
 
 ### Main Loop
 refresh_time = None
@@ -161,18 +160,17 @@ while True:
         if alarm_triggered and pyportal.audio.playing == False:
             print("Play the alarm file")
             pyportal._speaker_enable.value = True
-            pyportal.play_file(alarm_file, False)
+            play_alarm()
 
-    # The only purpose of touching the screen is to stop the alarm, so that's all we check here
-    # I feel I need to close the WAV file when the audio finishes but I don't see a way to do so
+    # The only purpose of touching the screen is to stop the alarm
     # We also stop the alarm if alarm_max_time seconds have elapsed
     if pyportal.audio.playing:
         if (pyportal.touchscreen.touch_point != None) or (time.monotonic() - alarm_start_time > alarm_max_time):
             print('Stop alarm (touch or expired)')
             alarm_triggered = False
+            wave_file.close()
             pyportal._speaker_enable.value = False
             pyportal.audio.stop()
-            force_alarm = False
 
     # update every half second for timely response to screen touches
     time.sleep(.5)

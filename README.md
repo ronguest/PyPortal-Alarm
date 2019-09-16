@@ -7,8 +7,8 @@ Changes needed:
 * PERIODICALLY MAKE COPIES OF PYPORTAL CONTENTS (write script)
 
 * Implement my own play_file so I can close the wavfile? If can't close the existing code
+* Is volume adjustable? I can't find a way.
 
-* TEST: Be sure alarm sound continues and doesn’t end once the minute changes
 * TEST: Hissing sound from speaker on PyPortal when I woke up. Added speaker disable code. Cut on-board connector.
 * TEST: Does alarm sound at 7am? How about a forced time slot?
 
