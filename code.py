@@ -38,7 +38,8 @@ do_once = True                  ### Used to print/log something only once
 
 # alarm support
 # alarm_file = 'alarm.wav'
-alarm_file = 'fnafs.wav'
+# alarm_file = 'fnafs.wav'
+alarm_file = 'ash.wav'
 wave_file = None                # This is a global so we can close the file when alarm done
 alarm_time = ""
 alarm_hour = 0                  # Computed from alarm_time string
