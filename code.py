@@ -23,6 +23,8 @@ import displayio
 
 alarm_url = secrets['alarm_url']    # Load this before setting up PyPortal
 print('alarm URL ', alarm_url)
+alarm_file = secrets['alarm_file']
+print('alarm file ', alarm_file)
 
 ####################
 # setup hardware
@@ -39,7 +41,7 @@ do_once = True                  ### Used to print/log something only once
 # alarm support
 # alarm_file = 'alarm.wav'
 # alarm_file = 'fnafs.wav'
-alarm_file = 'ash.wav'
+# alarm_file = 'ash.wav'
 wave_file = None                # This is a global so we can close the file when alarm done
 alarm_time = ""
 alarm_hour = 0                  # Computed from alarm_time string
@@ -57,7 +59,7 @@ time_font = bitmap_font.load_font('/fonts/Anton-Regular-104.bdf')
 time_font.load_glyphs(b'0123456789:') # pre-load glyphs for fast printing
 
 alarm_font = bitmap_font.load_font('/fonts/Nunito-Black-17.bdf')
-alarm_font.load_glyphs(b'0123456789:Wakeupat ')
+alarm_font.load_glyphs(b'0123456789:WakeupatNoalarmsetfortomorrow ')
 
 backlight_on = 0.8
 pyportal.set_backlight(backlight_on)
@@ -153,9 +155,9 @@ while True:
 
     # See if it is time to play the alarm sound, always skip Saturday (5) & Sunday (6)
     if ((time_now.tm_wday) != 5 and (time_now.tm_wday != 6)) or force_alarm:
-        # We trigger the alarm time on the hour and minute and first 5 seconds
+        # We trigger the alarm time on the hour and minute and first 2 seconds
         # This is to prevent the alarm from starting again if the user turns it off quickly
-        if ((alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_min) and (time_now.tm_sec <= 5)) or force_alarm:
+        if ((alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_min) and (time_now.tm_sec <= 2)) or force_alarm:
             print("Triggering alarm")
             alarm_triggered = True
             alarm_start_time = time.monotonic()
