@@ -155,9 +155,9 @@ while True:
 
     # See if it is time to play the alarm sound, always skip Saturday (5) & Sunday (6)
     if ((time_now.tm_wday) != 5 and (time_now.tm_wday != 6) and (alarm_time[:4] != "0000")) or force_alarm:
-        # We trigger the alarm time on the hour and minute and first 2 seconds
+        # We trigger the alarm time on the hour and minute and first 5 seconds
         # This is to prevent the alarm from starting again if the user turns it off quickly
-        if ((alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_min) and (time_now.tm_sec <= 2)) or force_alarm:
+        if ((alarm_hour == time_now.tm_hour) and (alarm_minute == time_now.tm_min) and (time_now.tm_sec <= 5)) or force_alarm:
             print("Triggering alarm")
             alarm_triggered = True
             alarm_start_time = time.monotonic()
