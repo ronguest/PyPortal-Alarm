@@ -3,6 +3,11 @@
 .clang_complete
 .gcc-flags.json
 secrets.py
+ashley_secrets.py
+connor_secrets.py
+r.sh
+ash.sh
+con.sh
 .DS_Store
 Backups
 Archive

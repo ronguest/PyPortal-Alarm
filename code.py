@@ -23,7 +23,7 @@ import displayio
 
 alarm_url = secrets['alarm_url']    # Load this before setting up PyPortal
 print('alarm URL ', alarm_url)
-alarm_file = secrets['alarm_file']
+alarm_file = secrets['alarm_file']  # This is the WAV file sound to play
 print('alarm file ', alarm_file)
 
 ####################
@@ -37,11 +37,8 @@ pyportal = PyPortal(url=alarm_url,
 # Debugging only
 force_alarm = False              ### For debugging only
 do_once = True                  ### Used to print/log something only once
+## end debugging vars
 
-# alarm support - not used, fetched from secrets file
-# alarm_file = 'alarm.wav'
-# alarm_file = 'fnafs.wav'
-# alarm_file = 'ash.wav'
 wave_file = None                # This is a global so we can close the file when alarm done
 alarm_time = ""
 alarm_hour = 0                  # Computed from alarm_time string
@@ -54,9 +51,9 @@ alarm_max_time = 720            # In seconds
 current_time = None
 
 ####################
-# Load the fonts
+# Load the fonts, pre-load glyphs for fast display updates initially
 time_font = bitmap_font.load_font('/fonts/Anton-Regular-104.bdf')
-time_font.load_glyphs(b'0123456789:') # pre-load glyphs for fast printing
+time_font.load_glyphs(b'0123456789:') 
 
 alarm_font = bitmap_font.load_font('/fonts/Nunito-Black-17.bdf')
 alarm_font.load_glyphs(b'0123456789:WakeupatNoalarmsetfortomorrow ')

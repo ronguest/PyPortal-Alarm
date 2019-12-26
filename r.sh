@@ -1,2 +1,2 @@
 echo `date`
-cp code.py secrets.py /Volumes/CIRCUITPY
+cp code.py /Volumes/CIRCUITPY
