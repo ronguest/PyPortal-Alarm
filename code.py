@@ -105,7 +105,7 @@ def formatTime(raw_hours, raw_minutes):
 def play_alarm():
     global wave_file
     # Play alarm file in background
-    board.DISPLAY.wait_for_frame()
+    # board.DISPLAY.wait_for_frame() -- not needed and no longer in API
     wave_file = open(alarm_file, "rb")
     wavedata = audioio.WaveFile(wave_file)
     pyportal.audio.play(wavedata)
