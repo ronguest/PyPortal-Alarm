@@ -80,8 +80,8 @@ while True:
     try:
         # print("Getting time from internet!")
         pyportal.get_local_time()
-    except RuntimeError as e:
-        print("Time set error occured, retrying! -", e)
+    except:
+        print("Time set error occured, retrying!")
         continue
     break
 
@@ -132,14 +132,14 @@ while True:
                 print("Alarm time was invalid ", alarm_time)
                 print("isdigit ", alarm_time.isdigit())
                 print("len ", len(alarm_time))
-        except RuntimeError as e:
-            print("Exception getting alarm time - ", e)
+        except:
+            print("Exception getting alarm time")
         try:
             print("Getting time from internet")
             pyportal.get_local_time()
             refresh_time = time.monotonic()
-        except RuntimeError as e:
-            print("Time set exception occured, retrying! -", e)
+        except:
+            print("Time set exception occured, retrying!")
             continue
     time_str_text = displayTime()
 
