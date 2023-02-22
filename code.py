@@ -45,7 +45,7 @@ alarm_hour = 0                  # Computed from alarm_time string
 alarm_minute = 0
 alarm_triggered = False         # If True then we should be playing alarm sound continuously
 alarm_start_time = 0            # Used to turn off alarm after alarm_max_time minutes
-alarm_max_time = 720            # In seconds
+alarm_max_time = 300            # In seconds
 
 # The most recently fetched time
 current_time = None
